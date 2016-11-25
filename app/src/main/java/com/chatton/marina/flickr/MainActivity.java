@@ -6,13 +6,16 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener {
 
     private List<Photo> photoList = new ArrayList<>();
     private ListAdapter adapter;
@@ -49,6 +52,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         adapter.setPhotoList(photoList);
 
         listView.setOnItemClickListener(this);
+
+        Button searchButton = (Button) findViewById(R.id.search_button);
+        searchButton.setOnClickListener(this);
     }
 
     @Override
@@ -64,5 +70,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
         intent.putExtra("photo", photo);
         startActivity(intent);
+    }
+
+    @Override
+    public void onClick(View v) {
+        final EditText searchText = (EditText) findViewById(R.id.search_text);
+        Toast.makeText(MainActivity.this, searchText.getText().toString(), Toast.LENGTH_SHORT).show();
     }
 }

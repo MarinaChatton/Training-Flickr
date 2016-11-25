@@ -8,6 +8,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         listView.setOnItemClickListener(this);
 
-        Button searchButton = (Button) findViewById(R.id.search_button);
+        ImageButton searchButton = (ImageButton) findViewById(R.id.search_button);
         searchButton.setOnClickListener(this);
     }
 

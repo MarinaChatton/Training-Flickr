@@ -33,4 +33,12 @@ public class Item implements Serializable{
     public void setUrl(String url) {
         this.url = url;
     }
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "title='" + title + '\'' +
+                ", url='" + url + '\'' +
+                '}';
+    }
 }

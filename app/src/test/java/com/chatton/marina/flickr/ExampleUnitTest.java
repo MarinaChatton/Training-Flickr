@@ -1,7 +1,5 @@
 package com.chatton.marina.flickr;
 
-import android.util.Log;
-
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -30,14 +28,14 @@ public class ExampleUnitTest {
         FlickrResponseDto response = new FlickrResponseDto(photoSet, "ok");
 
         //Converted Object
-        List<Item> correctConversionResult = new ArrayList<>();
-        Item photo1 = new Item("Skeptic", "https://farm9.static.flickr.com/8654/30270922721_75c2ec3c42.jpg");
-        Item photo2 = new Item("DIY Dog Training", "https://farm8.static.flickr.com/7533/30240412862_dafbdc93bf.jpg");
-        correctConversionResult.add(photo1);
-        correctConversionResult.add(photo2);
+        List<Photo> correctConversionResult = new ArrayList<>();
+        Photo item1 = new Photo("Skeptic", "https://farm9.static.flickr.com/8654/30270922721_75c2ec3c42.jpg");
+        Photo item2 = new Photo("DIY Dog Training", "https://farm8.static.flickr.com/7533/30240412862_dafbdc93bf.jpg");
+        correctConversionResult.add(item1);
+        correctConversionResult.add(item2);
 
         //conversion
-        List<Item> convertedFlickResponse;
+        List<Photo> convertedFlickResponse;
         convertedFlickResponse = converter.convert(response);
 
         //check

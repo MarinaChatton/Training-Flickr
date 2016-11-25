@@ -14,15 +14,15 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        Item item = (Item) getIntent().getSerializableExtra("item");
+        Photo photo = (Photo) getIntent().getSerializableExtra("photo");
 
         TextView title = (TextView) findViewById(R.id.detail_title);
-        title.setText(item.getTitle().toUpperCase());
+        title.setText(photo.getTitle().toUpperCase());
 
         TextView url = (TextView) findViewById(R.id.detail_url);
-        url.setText(item.getUrl());
+        url.setText(photo.getUrl());
 
         ImageView img = (ImageView) findViewById(R.id.detail_img);
-        Picasso.with(this).load(item.getUrl()).into(img);
+        Picasso.with(this).load(photo.getUrl()).into(img);
     }
 }

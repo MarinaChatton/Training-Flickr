@@ -6,14 +6,14 @@ import java.io.Serializable;
  * Created by Marina on 24/11/2016.
  */
 
-public class Item implements Serializable{
+public class Photo implements Serializable{
     private String title;
     private String url;
 
-    public Item() {
+    public Photo() {
     }
 
-    public Item(String title, String url) {
+    public Photo(String title, String url) {
         this.title = title;
         this.url = url;
     }
@@ -36,7 +36,7 @@ public class Item implements Serializable{
 
     @Override
     public String toString() {
-        return "Item{" +
+        return "Photo{" +
                 "title='" + title + '\'' +
                 ", url='" + url + '\'' +
                 '}';

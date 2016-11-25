@@ -2,7 +2,6 @@ package com.chatton.marina.flickr;
 
 import android.content.Context;
 import android.support.design.widget.FloatingActionButton;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +11,6 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +19,7 @@ import java.util.List;
  */
 
 public class ListAdapter extends BaseAdapter{
-    private List<Item> itemsList = new ArrayList<>();
+    private List<Photo> photoList = new ArrayList<>();
     private Context context;
 
     public ListAdapter() {
@@ -31,23 +29,23 @@ public class ListAdapter extends BaseAdapter{
         this.context = context;
     }
 
-    public List<Item> getItemsList() {
-        return itemsList;
+    public List<Photo> getPhotoList() {
+        return photoList;
     }
 
-    public void setItemsList(List<Item> itemsList) {
-        this.itemsList = itemsList;
+    public void setPhotoList(List<Photo> photoList) {
+        this.photoList = photoList;
         notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        return itemsList.size();
+        return photoList.size();
     }
 
     @Override
-    public Item getItem(int position) {
-        return itemsList.get(position);
+    public Photo getItem(int position) {
+        return photoList.get(position);
     }
 
     @Override
@@ -61,18 +59,18 @@ public class ListAdapter extends BaseAdapter{
             convertView = LayoutInflater.from(context).inflate(R.layout.row_layout, parent, false);
 
         }
-        final Item item = getItem(position);
+        final Photo photo = getItem(position);
         ImageView thumbnail = (ImageView) convertView.findViewById(R.id.thumbnail);
-        Picasso.with(context).load(item.getUrl()).resize(200, 200).centerInside().into(thumbnail);
+        Picasso.with(context).load(photo.getUrl()).resize(200, 200).centerInside().into(thumbnail);
         TextView title = (TextView) convertView.findViewById(R.id.item_title);
-        title.setText(item.getTitle());
+        title.setText(photo.getTitle());
         FloatingActionButton fab = (FloatingActionButton) convertView.findViewById(R.id.fab_delete);
         fab.setFocusable(false);
         fab.setFocusableInTouchMode(false);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                itemsList.remove(item);
+                photoList.remove(photo);
                 notifyDataSetChanged();
             }
         });

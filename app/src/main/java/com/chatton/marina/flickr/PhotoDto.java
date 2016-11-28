@@ -103,4 +103,19 @@ public class PhotoDto {
     public void setIsfamily(long isfamily) {
         this.isfamily = isfamily;
     }
+
+    @Override
+    public String toString() {
+        return "PhotoDto{" +
+                "id='" + id + '\'' +
+                ", owner='" + owner + '\'' +
+                ", secret='" + secret + '\'' +
+                ", server='" + server + '\'' +
+                ", farm=" + farm +
+                ", title='" + title + '\'' +
+                ", ispublic=" + ispublic +
+                ", isfriend=" + isfriend +
+                ", isfamily=" + isfamily +
+                '}';
+    }
 }

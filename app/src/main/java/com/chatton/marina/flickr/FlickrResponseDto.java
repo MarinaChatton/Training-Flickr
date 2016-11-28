@@ -32,4 +32,12 @@ public class FlickrResponseDto {
     public void setStat(String stat) {
         this.stat = stat;
     }
+
+    @Override
+    public String toString() {
+        return "FlickrResponseDto{" +
+                "photos=" + photos.toString() +
+                ", stat='" + stat + '\'' +
+                '}';
+    }
 }

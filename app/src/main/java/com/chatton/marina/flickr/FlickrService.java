@@ -6,37 +6,70 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.widget.Toast;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FlickrService extends Service {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Query;
+
+public class FlickrService extends Service{
+    public static final String URL = " https://www.flickr.com";
     private final IBinder binder = new ServiceBinder();
     private List<Photo> photoList = new ArrayList<>();
+    private Converter converter = new Converter();
+    private Retrofit retrofit;
+    private FlickrRetrofitService service;
+    private FlickrResponseListener flickrResponseListener;
 
-    public List<Photo> getPhotoList() {
-        //hardcoded test set
-        photoList.add(new Photo("marguerite", "http://www.coloori.com/wp-content/uploads/2016/04/marguerite.jpg"));
-        photoList.add(new Photo("rose", "http://www.lejardindesfleurs.com/img/cms/A-rose-is-a-rose-roses-20581060-2256-1496.jpg"));
-        photoList.add(new Photo("pivoine", "https://static.pratique.fr/images/unsized/pi/pivoine-rouge.jpg"));
-        photoList.add(new Photo("rose trémière", "http://a407.idata.over-blog.com/3/72/39/91/Rose-tremiere/056.JPG"));
-        photoList.add(new Photo("rose d'Inde", "http://www.rustica.fr/images/308516j-l720-h512.jpg"));
-        photoList.add(new Photo("oeillet d'Inde", "http://media.ooreka.fr/public/image/plant/36/varietyImage/cu90y4mrztskc0gk44o0oc4k0-source-9498396.jpg"));
-        photoList.add(new Photo("oeillet", "http://www.papillonsdemots.fr/wp-content/uploads/2012/06/Oeillet-rouge.jpg"));
-        photoList.add(new Photo("oeillet de poète", "http://a405.idata.over-blog.com/600x450/3/01/28/31/jardin-2/oeillets-de-po-te--800x600---2-.jpg"));
-        photoList.add(new Photo("iris", "http://maxpull.gdvuch3veo.netdna-cdn.com/wp-content/uploads/2012/05/Siberian-iris.jpg"));
-        photoList.add(new Photo("crocus", "http://wallpaperlayer.com/img/2015/2/crocuses-wallpaper-1343-1474-hd-wallpapers.jpg"));
-        photoList.add(new Photo("bougainvilliers", "http://media.ooreka.fr/public/image/plant/53/mainImage-full-10233175.jpg"));
-        photoList.add(new Photo("glycine", "https://static.pratique.fr/images/unsized/gl/glycine-chine-culture.jpg"));
+    public void setFlickrResponseListener(FlickrResponseListener flickrResponseListener) {
+        this.flickrResponseListener = flickrResponseListener;
+    }
 
-        return photoList;
+    public void getPhotoList(String query) {
+        if(!query.equals("")) {
+            query = formatQuery(query);
+            Call<FlickrResponseDto> flickrResponseDtoCall = service.getPhotos(query, getResources().getString(R.string.flickr_api_key));
+            flickrResponseDtoCall.enqueue(new Callback<FlickrResponseDto>() {
+                @Override
+                public void onResponse(Call<FlickrResponseDto> call, Response<FlickrResponseDto> response) {
+                    if (response.isSuccessful()) {
+                        photoList = converter.convert(response.body());
+                        flickrResponseListener.onPhotoReceived(photoList);
+                        Log.e("onResponse", photoList.toString());
+                    } else {
+                        Log.e("unSuccessful", "url: " + call.request().url());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<FlickrResponseDto> call, Throwable t) {
+                    Log.e("onFailure", String.valueOf(t));
+                }
+            });
+        }
+    }
+
+    public String formatQuery(String query){
+        query = query.trim();
+        query = query.replaceAll("\\s+","+");
+        return query;
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        String apiKey = getResources().getString(R.string.flickr_api_key);
+        retrofit = new Retrofit.Builder().baseUrl(URL).addConverterFactory(GsonConverterFactory.create()).build();
+        service = retrofit.create(FlickrRetrofitService.class);
         return binder;
     }
 

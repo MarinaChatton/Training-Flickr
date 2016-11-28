@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -20,7 +21,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener, FlickrResponseListener {
     private FlickrService flickrService;
     boolean bound = false;
 
@@ -66,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         public void onServiceConnected(ComponentName name, IBinder service) {
             FlickrService.ServiceBinder binder = (FlickrService.ServiceBinder) service;
             flickrService = binder.getService();
+            //declare MainActivity as listener of FlickrResponseListener
+            flickrService.setFlickrResponseListener(MainActivity.this);
             bound = true;
         }
 
@@ -87,9 +90,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onClick(View v) {
         final EditText searchText = (EditText) findViewById(R.id.search_text);
         if(bound) {
-            photoList = flickrService.getPhotoList();
-            adapter.setPhotoList(photoList);
+            flickrService.getPhotoList(searchText.getText().toString());
         }
         Toast.makeText(MainActivity.this, searchText.getText().toString(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPhotoReceived(List<Photo> photoList) {
+        adapter.setPhotoList(photoList);
     }
 }

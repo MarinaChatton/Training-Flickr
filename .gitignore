@@ -43,3 +43,6 @@ captures/
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
+
+# API keys
+app/src/main/res/values/flickr_api_key.xml

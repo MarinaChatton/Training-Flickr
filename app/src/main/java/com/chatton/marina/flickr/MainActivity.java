@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener {
-   private FlickrService flickrService;
+    private FlickrService flickrService;
     boolean bound = false;
 
     private List<Photo> photoList = new ArrayList<>();
@@ -86,8 +86,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onClick(View v) {
         final EditText searchText = (EditText) findViewById(R.id.search_text);
-        photoList = flickrService.getPhotoList();
-        adapter.setPhotoList(photoList);
+        if(bound) {
+            photoList = flickrService.getPhotoList();
+            adapter.setPhotoList(photoList);
+        }
         Toast.makeText(MainActivity.this, searchText.getText().toString(), Toast.LENGTH_SHORT).show();
     }
 }

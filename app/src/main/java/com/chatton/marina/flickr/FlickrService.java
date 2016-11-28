@@ -2,18 +2,22 @@ package com.chatton.marina.flickr;
 
 import android.app.Service;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FlickrService extends Service {
     private final IBinder binder = new ServiceBinder();
-    List<Photo> photoList = new ArrayList<>();
+    private List<Photo> photoList = new ArrayList<>();
 
     public List<Photo> getPhotoList() {
+        //hardcoded test set
         photoList.add(new Photo("marguerite", "http://www.coloori.com/wp-content/uploads/2016/04/marguerite.jpg"));
         photoList.add(new Photo("rose", "http://www.lejardindesfleurs.com/img/cms/A-rose-is-a-rose-roses-20581060-2256-1496.jpg"));
         photoList.add(new Photo("pivoine", "https://static.pratique.fr/images/unsized/pi/pivoine-rouge.jpg"));

@@ -44,7 +44,6 @@ public class FlickrService extends Service{
                     if (response.isSuccessful()) {
                         photoList = converter.convert(response.body());
                         flickrResponseListener.onPhotoReceived(photoList);
-                        Log.e("onResponse", photoList.toString());
                     } else {
                         Log.e("unSuccessful", "url: " + call.request().url());
                     }

@@ -21,6 +21,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener, FlickrResponseListener {
     private FlickrService flickrService;
     boolean bound = false;
@@ -28,21 +31,25 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private List<Photo> photoList = new ArrayList<>();
     private ListAdapter adapter = new ListAdapter(this);
 
+    @BindView(R.id.list) ListView listView;
+    @BindView(R.id.search_text) EditText searchText;
+    @BindView(R.id.search_button) ImageButton searchButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ButterKnife.bind(this);
+
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-        ListView listView = (ListView) findViewById(R.id.list);
         listView.setAdapter(adapter);
 
         adapter.setPhotoList(photoList);
 
         listView.setOnItemClickListener(this);
 
-        ImageButton searchButton = (ImageButton) findViewById(R.id.search_button);
         searchButton.setOnClickListener(this);
     }
 
@@ -88,11 +95,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onClick(View v) {
-        final EditText searchText = (EditText) findViewById(R.id.search_text);
         if(bound) {
             flickrService.getPhotoList(searchText.getText().toString());
         }
-        Toast.makeText(MainActivity.this, searchText.getText().toString(), Toast.LENGTH_SHORT).show();
     }
 
     @Override

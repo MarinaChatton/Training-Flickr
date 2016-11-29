@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Flickr</string>
+    <string name="drawer_open">Drawer open</string>
+    <string name="drawer_close">Drawer closed</string>
+    <string-array name="images_number_per_page">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
+        <item>35</item>
+        <item>40</item>
+        <item>45</item>
+        <item>50</item>
+    </string-array>
 </resources>

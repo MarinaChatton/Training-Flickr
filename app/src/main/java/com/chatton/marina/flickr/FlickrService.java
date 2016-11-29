@@ -34,10 +34,10 @@ public class FlickrService extends Service{
         this.flickrResponseListener = flickrResponseListener;
     }
 
-    public void getPhotoList(String query) {
+    public void getPhotoList(String perPage, String query) {
         if(!query.equals("")) {
             query = formatQuery(query);
-            Call<FlickrResponseDto> flickrResponseDtoCall = service.getPhotos(query, getResources().getString(R.string.flickr_api_key));
+            Call<FlickrResponseDto> flickrResponseDtoCall = service.getPhotos(perPage, query, getResources().getString(R.string.flickr_api_key));
             flickrResponseDtoCall.enqueue(new Callback<FlickrResponseDto>() {
                 @Override
                 public void onResponse(Call<FlickrResponseDto> call, Response<FlickrResponseDto> response) {

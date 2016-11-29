@@ -22,7 +22,8 @@
         <service
             android:name=".FlickrService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
     </application>
 
 </manifest>

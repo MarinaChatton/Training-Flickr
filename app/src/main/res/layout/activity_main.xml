@@ -18,6 +18,7 @@
         tools:context="com.chatton.marina.flickr.MainActivity">
 
         <LinearLayout
+            android:id="@+id/search_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -57,33 +58,31 @@
         android:paddingLeft="50dp"
         android:paddingRight="50dp"
         android:background="@android:color/white">
-        <ImageButton
-            android:id="@+id/drawer_search_button"
+        <org.honorato.multistatetogglebutton.MultiStateToggleButton
+            xmlns:mstb="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/drawer_toggle_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_search"/>
-        <Button
-            android:id="@+id/drawer_history_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="History"/>
+            android:layout_marginBottom="20dp"
+            mstb:mstbPrimaryColor="@color/colorAccent"
+            mstb:mstbSecondaryColor="@android:color/white"/>
         <LinearLayout
-            android:layout_marginTop="25dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Nb:"
-                android:textAlignment="center"/>
+                android:textAlignment="textStart"/>
             <Spinner
                 android:id="@+id/drawer_images_number_per_page"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textAlignment="viewEnd"
+                android:textAlignment="center"
+                android:background="@android:drawable/btn_dropdown"
                 />
         </LinearLayout>
     </LinearLayout>

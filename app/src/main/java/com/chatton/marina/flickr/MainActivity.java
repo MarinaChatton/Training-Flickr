@@ -35,25 +35,27 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener, FlickrResponseListener, AdapterView.OnItemSelectedListener, ToggleButton.OnValueChangedListener {
-    private ActionBarDrawerToggle actionBarDrawerToggle;
+    public static final String FULL_VIEW_PHOTO = "photo";
+    private final static String DISPLAY_MODE_INDEX = "displayModeIndex";
+    private final static String IMAGE_PER_PAGE_INDEX = "imagePerPageIndex";
 
-    private FlickrService flickrService;
-    boolean bound = false;
+    //persistence
+    private SharedPreferences sharedPreferences;
 
-    private List<Photo> photoList = new ArrayList<>();
-    private ListAdapter adapter = new ListAdapter(this);
-
-    //default values:
     private int displayModeIndex = 0;
     private int imagePerPageIndex = 0;
 
-    private String imagePerPage;
+    //service
+    private FlickrService flickrService;
+    boolean bound = false;
 
-    public static final String FULL_VIEW_PHOTO = "photo";
+    //list
+    private List<Photo> photoList = new ArrayList<>();
+    private ListAdapter adapter = new ListAdapter(this);
 
-    private SharedPreferences sharedPreferences;
-    private final static String DISPLAY_MODE_INDEX = "displayModeIndex";
-    private final static String IMAGE_PER_PAGE_INDEX = "imagePerPageIndex";
+    //GRAPHIC COMPONENTS
+    //action bar button
+    private ActionBarDrawerToggle actionBarDrawerToggle;
 
     //drawer
     @BindView(R.id.drawer_layout) DrawerLayout drawerLayout;
@@ -71,46 +73,41 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        sharedPreferences = getPreferences(MODE_PRIVATE);
-
         ButterKnife.bind(this);
+
+        sharedPreferences = getPreferences(MODE_PRIVATE);
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-        //actionBar
+        //ACTION BAR
+        initActionBar();
+
+        //DRAWER
+        //toggle button to select display mode:
+        initDrawerMultiStateButtons();
+        //dropdown to set the number of images displayed:
+        initSpinner();
+
+        //SEARCH VIEW
+        //search bar
+        initSearchBar();
+        //list setting
+        initList();
+
+    }
+
+    private void initActionBar(){
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
-
-        //drawer:
-        //toggle button to select display mode:
-        initDrawerMultiStateButtons();
-        //dropdown to set the number of images displayed:
-        if(sharedPreferences.contains(IMAGE_PER_PAGE_INDEX)){
-            imagePerPageIndex = sharedPreferences.getInt(IMAGE_PER_PAGE_INDEX, 0); //load value saved in preferences
-        }
-        drawerImagesNbSpinner.setOnItemSelectedListener(this);
-        ArrayAdapter<CharSequence> adapterSpinner = ArrayAdapter.createFromResource(this,R.array.images_number_per_page, android.R.layout.simple_spinner_item);
-        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        drawerImagesNbSpinner.setAdapter(adapterSpinner);
-        drawerImagesNbSpinner.setSelection(imagePerPageIndex);//if saved spinner's value as string instead of index of value => spinner.setSelection(adapter.getPosition(value))
-        imagePerPage = drawerImagesNbSpinner.getItemAtPosition(imagePerPageIndex).toString();
-
-        //list setting
-        listView.setAdapter(adapter);
-        adapter.setPhotoList(photoList);
-        listView.setOnItemClickListener(this);
-        //search button
-        searchButton.setOnClickListener(this);
-        setSearchLayoutVisibility(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
     }
 
-    public void initDrawerMultiStateButtons(){
+    private void initDrawerMultiStateButtons(){
         if(sharedPreferences.contains(DISPLAY_MODE_INDEX)){
             displayModeIndex = sharedPreferences.getInt(DISPLAY_MODE_INDEX, 0); //load value saved in preferences
         }
-        final ImageButton button1 = (ImageButton) getLayoutInflater().inflate(R.layout.drawer_search_button, drawerToggle, false);
+        ImageButton button1 = (ImageButton) getLayoutInflater().inflate(R.layout.drawer_search_button, drawerToggle, false);
         button1.setImageResource(android.R.drawable.ic_menu_search);
         ImageButton button2 = (ImageButton) getLayoutInflater().inflate(R.layout.drawer_search_button, drawerToggle, false);
         button2.setImageResource(android.R.drawable.ic_menu_recent_history);
@@ -120,6 +117,28 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         selectionState[displayModeIndex] = true;
         drawerToggle.setButtons(buttons, selectionState);
         drawerToggle.setOnValueChangedListener(this);
+    }
+
+    private void initSpinner(){
+        if(sharedPreferences.contains(IMAGE_PER_PAGE_INDEX)){
+            imagePerPageIndex = sharedPreferences.getInt(IMAGE_PER_PAGE_INDEX, 0); //load value saved in preferences
+        }
+        drawerImagesNbSpinner.setOnItemSelectedListener(this);
+        ArrayAdapter<CharSequence> adapterSpinner = ArrayAdapter.createFromResource(this,R.array.images_number_per_page, android.R.layout.simple_spinner_item);
+        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        drawerImagesNbSpinner.setAdapter(adapterSpinner);
+        drawerImagesNbSpinner.setSelection(imagePerPageIndex);//if saved spinner's value as string instead of index of value => spinner.setSelection(adapter.getPosition(value))
+    }
+
+    private void initSearchBar(){
+        searchButton.setOnClickListener(this);
+        setSearchLayoutVisibility(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
+    }
+
+    private void initList(){
+        listView.setAdapter(adapter);
+        adapter.setPhotoList(photoList);
+        listView.setOnItemClickListener(this);
     }
 
     public void setSearchLayoutVisibility(int value){
@@ -178,7 +197,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onClick(View v) {
         if(bound) {
-            flickrService.getPhotoList(imagePerPage, searchText.getText().toString());
+            String perPage = drawerImagesNbSpinner.getSelectedItem().toString();
+            String query = searchText.getText().toString();
+            flickrService.getPhotoList(perPage, query);
         }
     }
 
@@ -221,12 +242,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         editor.commit();
     }
 
-    //drawer dropdown listener
+    //drawer dropdown listeners
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        imagePerPage = parent.getItemAtPosition(position).toString();
         if(bound) {
-            flickrService.getPhotoList(imagePerPage, searchText.getText().toString());
+            String perPage = parent.getItemAtPosition(position).toString();
+            String query =  searchText.getText().toString();
+            flickrService.getPhotoList(perPage, query);
         }
         //save preferences
         SharedPreferences.Editor editor = sharedPreferences.edit();

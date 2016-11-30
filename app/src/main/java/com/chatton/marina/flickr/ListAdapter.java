@@ -1,6 +1,7 @@
 package com.chatton.marina.flickr;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.design.widget.FloatingActionButton;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -70,6 +71,12 @@ public class ListAdapter extends BaseAdapter{
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                MainActivity mainActivity = (MainActivity) context;
+                int displayModeIndex = mainActivity.getDisplayModeIndex();
+                if(displayModeIndex==1){
+                    PhotoPersistenceManager photoPersistenceManager = new PhotoPersistenceManager(mainActivity);
+                    photoPersistenceManager.delete(photo);
+                }
                 photoList.remove(photo);
                 notifyDataSetChanged();
             }

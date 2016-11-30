@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.widget.DrawerLayout;
@@ -23,16 +22,12 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.Switch;
 
 import org.honorato.multistatetogglebutton.MultiStateToggleButton;
 import org.honorato.multistatetogglebutton.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener, FlickrResponseListener, AdapterView.OnItemSelectedListener, ToggleButton.OnValueChangedListener {
     public static final String FULL_VIEW_PHOTO = "photo";
@@ -41,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     //persistence
     private SharedPreferences sharedPreferences;
+    private PhotoPersistenceManager photoPersistenceManager;
 
     private int displayModeIndex = 0;
     private int imagePerPageIndex = 0;
@@ -58,26 +54,38 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private ActionBarDrawerToggle actionBarDrawerToggle;
 
     //drawer
-    @BindView(R.id.drawer_layout) DrawerLayout drawerLayout;
-    @BindView(R.id.drawer_toggle_button) MultiStateToggleButton drawerToggle;
-    @BindView(R.id.drawer_images_number_per_page) Spinner drawerImagesNbSpinner;
+    DrawerLayout drawerLayout;
+    MultiStateToggleButton drawerToggle;
+    Spinner drawerImagesNbSpinner;
 
     //search view
-    @BindView(R.id.search_layout) LinearLayout searchLayout;
-    @BindView(R.id.search_text) EditText searchText;
-    @BindView(R.id.search_button) ImageButton searchButton;
-    @BindView(R.id.list) ListView listView;
+    LinearLayout searchLayout;
+    EditText searchText;
+    ImageButton searchButton;
+    ListView listView;
+
+    public int getDisplayModeIndex() {
+        return displayModeIndex;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ButterKnife.bind(this);
-
         sharedPreferences = getPreferences(MODE_PRIVATE);
+        photoPersistenceManager = new PhotoPersistenceManager(this);
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
+        //VIEWS
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerToggle = (MultiStateToggleButton) findViewById(R.id.drawer_toggle_button);
+        drawerImagesNbSpinner = (Spinner) findViewById(R.id.drawer_images_number_per_page);
+        searchLayout = (LinearLayout) findViewById(R.id.search_layout);
+        searchText = (EditText) findViewById(R.id.search_text);
+        searchButton = (ImageButton) findViewById(R.id.search_button);
+        listView = (ListView) findViewById(R.id.list);
 
         //ACTION BAR
         initActionBar();
@@ -137,11 +145,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void initList(){
         listView.setAdapter(adapter);
-        adapter.setPhotoList(photoList);
+        setList(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
         listView.setOnItemClickListener(this);
     }
 
-    public void setSearchLayoutVisibility(int value){
+    private void setSearchLayoutVisibility(int value){
         switch (value){
             case 0:
                 searchLayout.setVisibility(View.VISIBLE);
@@ -152,6 +160,28 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             default:
                 break;
         }
+    }
+
+    private void setList(int value){
+        switch (value){
+            case 0:
+                searchModeDisplay();
+                break;
+            case 1:
+                historyModeDisplay();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void historyModeDisplay(){
+        List<Photo> savedPhotos = photoPersistenceManager.getAll();
+        adapter.setPhotoList(savedPhotos);
+    }
+
+    private void searchModeDisplay(){
+        adapter.setPhotoList(photoList);
     }
 
     @Override
@@ -189,6 +219,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Photo photo = adapter.getItem(position);
+        if(photoPersistenceManager.getByUrl(photo.getUrl())==null) {
+            photoPersistenceManager.save(photo);
+        }
         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
         intent.putExtra(FULL_VIEW_PHOTO, photo);
         startActivity(intent);
@@ -235,7 +268,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //drawer togglebutton listener
     @Override
     public void onValueChanged(int value) {
+        //todo onHistoryClick: display saved photos; order them by full view clicks count
         setSearchLayoutVisibility(value);
+        setList(value);
         //save preferences
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(DISPLAY_MODE_INDEX, value);

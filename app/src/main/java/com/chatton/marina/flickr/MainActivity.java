@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private String imagePerPage;
 
+    public static final String FULL_VIEW_PHOTO = "photo";
+
     private SharedPreferences sharedPreferences;
     private final static String DISPLAY_MODE_INDEX = "displayModeIndex";
     private final static String IMAGE_PER_PAGE_INDEX = "imagePerPageIndex";
@@ -82,18 +84,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getSupportActionBar().setHomeButtonEnabled(true);
 
         //drawer:
-        //toggle button to select display mode
+        //toggle button to select display mode:
         initDrawerMultiStateButtons();
-        //dropdown to set the number of images displayed
+        //dropdown to set the number of images displayed:
         if(sharedPreferences.contains(IMAGE_PER_PAGE_INDEX)){
-            imagePerPageIndex = sharedPreferences.getInt(IMAGE_PER_PAGE_INDEX, 0);
+            imagePerPageIndex = sharedPreferences.getInt(IMAGE_PER_PAGE_INDEX, 0); //load value saved in preferences
         }
         drawerImagesNbSpinner.setOnItemSelectedListener(this);
         ArrayAdapter<CharSequence> adapterSpinner = ArrayAdapter.createFromResource(this,R.array.images_number_per_page, android.R.layout.simple_spinner_item);
         adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         drawerImagesNbSpinner.setAdapter(adapterSpinner);
-        drawerImagesNbSpinner.setSelection(imagePerPageIndex);
-        imagePerPage = (String) drawerImagesNbSpinner.getItemAtPosition(imagePerPageIndex);
+        drawerImagesNbSpinner.setSelection(imagePerPageIndex);//if saved spinner's value as string instead of index of value => spinner.setSelection(adapter.getPosition(value))
+        imagePerPage = drawerImagesNbSpinner.getItemAtPosition(imagePerPageIndex).toString();
 
         //list setting
         listView.setAdapter(adapter);
@@ -106,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public void initDrawerMultiStateButtons(){
         if(sharedPreferences.contains(DISPLAY_MODE_INDEX)){
-            displayModeIndex = sharedPreferences.getInt(DISPLAY_MODE_INDEX, 0);
+            displayModeIndex = sharedPreferences.getInt(DISPLAY_MODE_INDEX, 0); //load value saved in preferences
         }
         final ImageButton button1 = (ImageButton) getLayoutInflater().inflate(R.layout.drawer_search_button, drawerToggle, false);
         button1.setImageResource(android.R.drawable.ic_menu_search);
@@ -169,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Photo photo = adapter.getItem(position);
         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-        intent.putExtra("photo", photo);
+        intent.putExtra(FULL_VIEW_PHOTO, photo);
         startActivity(intent);
     }
 
@@ -222,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //drawer dropdown listener
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        imagePerPage = (String) parent.getItemAtPosition(position);
+        imagePerPage = parent.getItemAtPosition(position).toString();
         if(bound) {
             flickrService.getPhotoList(imagePerPage, searchText.getText().toString());
         }

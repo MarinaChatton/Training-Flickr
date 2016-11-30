@@ -14,7 +14,7 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        Photo photo = (Photo) getIntent().getSerializableExtra("photo");
+        Photo photo = (Photo) getIntent().getSerializableExtra(MainActivity.FULL_VIEW_PHOTO);
 
         TextView title = (TextView) findViewById(R.id.detail_title);
         title.setText(photo.getTitle().toUpperCase());

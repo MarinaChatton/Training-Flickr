@@ -15,7 +15,6 @@ import java.io.Serializable;
 public class Photo extends BaseModel implements Serializable {
     @PrimaryKey(autoincrement = true)
     long id;
-
     @Column
     private String title;
     @Column
@@ -24,6 +23,8 @@ public class Photo extends BaseModel implements Serializable {
 
     public Photo() {
     }
+    @Column
+    private int clickCounter = 0;
 
     public Photo(String title, String url) {
         this.title = title;
@@ -52,6 +53,14 @@ public class Photo extends BaseModel implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public int getClickCounter() {
+        return clickCounter;
+    }
+
+    public void setClickCounter(int clickCounter) {
+        this.clickCounter = clickCounter;
     }
 
     @Override

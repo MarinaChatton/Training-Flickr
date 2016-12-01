@@ -36,7 +36,7 @@ public class PhotoPersistenceManager {
     }
 
     public List<Photo> getAll(){
-        return SQLite.select().from(Photo.class).queryList();
+        return SQLite.select().from(Photo.class).orderBy(Photo_Table.clickCounter, false).queryList();
     }
 
     public Photo getByUrl(String url){

@@ -144,7 +144,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void initList(){
         listView.setAdapter(adapter);
-        setList(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
         listView.setOnItemClickListener(this);
     }
 
@@ -188,6 +187,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onStart();
         Intent intent = new Intent(this, FlickrService.class);
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
+        //List will be reloaded if activity is created, re-reacreated(after device rotation), or restarted (when the user press Back button in DetailActivity)
+        setList(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
     }
 
     @Override
@@ -218,9 +220,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Photo photo = adapter.getItem(position);
-        if(photoPersistenceManager.getByUrl(photo.getUrl())==null) {
-            photoPersistenceManager.save(photo);
-        }
+        photo.setClickCounter(photo.getClickCounter()+1);
+        photoPersistenceManager.save(photo);
         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
         intent.putExtra(FULL_VIEW_PHOTO, photo);
         startActivity(intent);
@@ -267,7 +268,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //drawer togglebutton listener
     @Override
     public void onValueChanged(int value) {
-        //todo onHistoryClick: display saved photos; order them by full view clicks count
         setSearchLayoutVisibility(value);
         setList(value);
         //save preferences

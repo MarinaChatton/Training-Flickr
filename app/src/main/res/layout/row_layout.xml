@@ -21,6 +21,28 @@
         android:gravity="center_vertical"
         android:layout_weight="4"/>
 
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+        <ImageButton
+            android:id="@+id/item_star"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:src="@android:drawable/btn_star"
+            android:background="@android:color/transparent"/>
+        <TextView
+            android:id="@+id/item_click_counter"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"/>
+    </RelativeLayout>
+
+
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_delete"
         android:layout_width="0dp"

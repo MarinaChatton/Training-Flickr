@@ -1,5 +1,6 @@
 package com.chatton.marina.flickr;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.design.widget.FloatingActionButton;
@@ -55,7 +56,7 @@ public class ListAdapter extends BaseAdapter{
     }
 
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, final ViewGroup parent) {
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.row_layout, parent, false);
 
@@ -71,10 +72,10 @@ public class ListAdapter extends BaseAdapter{
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MainActivity mainActivity = (MainActivity) context;
-                int displayModeIndex = mainActivity.getDisplayModeIndex();
+                SharedPreferences sp = ((Activity) context).getPreferences(Context.MODE_PRIVATE);
+                int displayModeIndex = sp.getInt(MainActivity.DISPLAY_MODE_INDEX, 0);
                 if(displayModeIndex==1){
-                    PhotoPersistenceManager photoPersistenceManager = new PhotoPersistenceManager(mainActivity);
+                    PhotoPersistenceManager photoPersistenceManager = new PhotoPersistenceManager(context);
                     photoPersistenceManager.delete(photo);
                 }
                 photoList.remove(photo);

@@ -23,6 +23,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 import org.honorato.multistatetogglebutton.MultiStateToggleButton;
 import org.honorato.multistatetogglebutton.ToggleButton;
 
@@ -31,8 +33,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener, FlickrResponseListener, AdapterView.OnItemSelectedListener, ToggleButton.OnValueChangedListener {
     public static final String FULL_VIEW_PHOTO = "photo";
-    private final static String DISPLAY_MODE_INDEX = "displayModeIndex";
-    private final static String IMAGE_PER_PAGE_INDEX = "imagePerPageIndex";
+    public final static String DISPLAY_MODE_INDEX = "displayModeIndex";
+    public final static String IMAGE_PER_PAGE_INDEX = "imagePerPageIndex";
 
     //persistence
     private SharedPreferences sharedPreferences;
@@ -64,13 +66,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     ImageButton searchButton;
     ListView listView;
 
-    public int getDisplayModeIndex() {
-        return displayModeIndex;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
 
         sharedPreferences = getPreferences(MODE_PRIVATE);

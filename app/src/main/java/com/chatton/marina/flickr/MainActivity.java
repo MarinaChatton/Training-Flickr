@@ -103,17 +103,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-    private void initActionBar(){
+    private void initActionBar() {
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+        setNavBarTitle(sharedPreferences.getInt(DISPLAY_MODE_INDEX, 0));
     }
 
     private void initDrawerMultiStateButtons(){
-        if(sharedPreferences.contains(DISPLAY_MODE_INDEX)){
-            displayModeIndex = sharedPreferences.getInt(DISPLAY_MODE_INDEX, 0); //load value saved in preferences
-        }
+        displayModeIndex = sharedPreferences.getInt(DISPLAY_MODE_INDEX, 0); //load value saved in preferences
         ImageButton button1 = (ImageButton) getLayoutInflater().inflate(R.layout.drawer_search_button, drawerToggle, false);
         button1.setImageResource(android.R.drawable.ic_menu_search);
         ImageButton button2 = (ImageButton) getLayoutInflater().inflate(R.layout.drawer_search_button, drawerToggle, false);
@@ -127,9 +126,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void initSpinner(){
-        if(sharedPreferences.contains(IMAGE_PER_PAGE_INDEX)){
-            imagePerPageIndex = sharedPreferences.getInt(IMAGE_PER_PAGE_INDEX, 0); //load value saved in preferences
-        }
+        imagePerPageIndex = sharedPreferences.getInt(IMAGE_PER_PAGE_INDEX, 0); //load value saved in preferences
         drawerImagesNbSpinner.setOnItemSelectedListener(this);
         ArrayAdapter<CharSequence> adapterSpinner = ArrayAdapter.createFromResource(this,R.array.images_number_per_page, android.R.layout.simple_spinner_item);
         adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -160,26 +157,46 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
+    private void setNavBarTitle(int value){
+        String navBarTitle = getResources().getString(R.string.app_name);
+        switch (value){
+            case 0:
+                navBarTitle += " - Search";
+                break;
+            case 1:
+                navBarTitle += " - History";
+                break;
+            default:
+                break;
+        }
+        getSupportActionBar().setTitle(navBarTitle);
+    }
+
     private void setList(int value){
         switch (value){
             case 0:
-                searchModeDisplay();
+                loadSearchList();
                 break;
             case 1:
-                historyModeDisplay();
+                loadHistoryList();
                 break;
             default:
                 break;
         }
     }
 
-    private void historyModeDisplay(){
+    private void loadHistoryList(){
         List<Photo> savedPhotos = photoPersistenceManager.getAll();
         adapter.setPhotoList(savedPhotos);
     }
 
-    private void searchModeDisplay(){
+    private void loadSearchList(){
         adapter.setPhotoList(photoList);
+        if(bound) {
+            String perPage = drawerImagesNbSpinner.getSelectedItem().toString();
+            String query = searchText.getText().toString();
+            flickrService.getPhotoList(perPage, query);
+        }
     }
 
     @Override
@@ -188,8 +205,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Intent intent = new Intent(this, FlickrService.class);
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
-        //List will be reloaded if activity is created, re-reacreated(after device rotation), or restarted (when the user press Back button in DetailActivity)
-        setList(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
     }
 
     @Override
@@ -209,6 +224,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             //declare MainActivity as listener of FlickrResponseListener
             flickrService.setFlickrResponseListener(MainActivity.this);
             bound = true;
+
+            //List will be reloaded if activity is created, re-reacreated(after device rotation), or restarted (when the user press Back button in DetailActivity)
+            setList(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
         }
 
         @Override
@@ -220,6 +238,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Photo photo = adapter.getItem(position);
+        Photo savedPhoto = photoPersistenceManager.getByUrl(photo.getUrl());
+        if(savedPhoto!=null){
+            photo = savedPhoto;
+        }
         photo.setClickCounter(photo.getClickCounter()+1);
         photoPersistenceManager.save(photo);
         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
@@ -229,11 +251,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onClick(View v) {
-        if(bound) {
-            String perPage = drawerImagesNbSpinner.getSelectedItem().toString();
-            String query = searchText.getText().toString();
-            flickrService.getPhotoList(perPage, query);
-        }
+        loadSearchList();
     }
 
     @Override
@@ -268,6 +286,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //drawer togglebutton listener
     @Override
     public void onValueChanged(int value) {
+        setNavBarTitle(value);
         setSearchLayoutVisibility(value);
         setList(value);
         //save preferences
@@ -279,11 +298,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //drawer dropdown listeners
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if(bound) {
-            String perPage = parent.getItemAtPosition(position).toString();
-            String query =  searchText.getText().toString();
-            flickrService.getPhotoList(perPage, query);
-        }
+        setList(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
         //save preferences
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(IMAGE_PER_PAGE_INDEX, position);

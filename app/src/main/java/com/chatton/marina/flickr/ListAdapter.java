@@ -95,14 +95,15 @@ public class ListAdapter extends BaseAdapter{
         star.setColorFilter(ContextCompat.getColor(context, R.color.colorAccent), PorterDuff.Mode.MULTIPLY);
         star.setFocusable(false);
         star.setFocusableInTouchMode(false);
+        TextView clickCounter = (TextView) convertView.findViewById(R.id.item_click_counter);
         if(displayModeIndex==1){
-            TextView clickCounter = (TextView) convertView.findViewById(R.id.item_click_counter);
             clickCounter.setText(String.valueOf(photo.getClickCounter()));
         }else{
+            clickCounter.setText("");
             PhotoPersistenceManager photoPersistenceManager = new PhotoPersistenceManager(context);
             Photo savedPhoto = photoPersistenceManager.getByUrl(photo.getUrl());
             if(savedPhoto==null) {
-                star.setColorFilter(ContextCompat.getColor(context, android.R.color.transparent), PorterDuff.Mode.MULTIPLY);
+                star.setColorFilter(ContextCompat.getColor(context, android.R.color.white), PorterDuff.Mode.MULTIPLY);
             }
         }
     }

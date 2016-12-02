@@ -46,5 +46,7 @@ captures/
 
 # API keys
 app/src/main/res/values/flickr_api_key.xml
+app/src/main/res/values/fabric_api_key.xml
+app/fabric.properties
 
 .idea/

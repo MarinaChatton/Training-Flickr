@@ -27,6 +27,7 @@ import java.util.List;
 public class ListAdapter extends BaseAdapter{
     private List<Photo> photoList = new ArrayList<>();
     private Context context;
+    private OnRowDeletedListener onRowDeletedListener;
 
     public ListAdapter() {
     }
@@ -42,6 +43,10 @@ public class ListAdapter extends BaseAdapter{
     public void setPhotoList(List<Photo> photoList) {
         this.photoList = photoList;
         notifyDataSetChanged();
+    }
+
+    public void setOnRowDeletedListener(OnRowDeletedListener onRowDeletedListener) {
+        this.onRowDeletedListener = onRowDeletedListener;
     }
 
     @Override
@@ -61,8 +66,6 @@ public class ListAdapter extends BaseAdapter{
 
     @Override
     public View getView(final int position, View convertView, final ViewGroup parent) {
-        final SharedPreferences sp = ((Activity) context).getPreferences(Context.MODE_PRIVATE);
-        final int displayModeIndex = sp.getInt(MainActivity.DISPLAY_MODE_INDEX, 0);
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.row_layout, parent, false);
 
@@ -72,16 +75,15 @@ public class ListAdapter extends BaseAdapter{
         Picasso.with(context).load(photo.getUrl()).resize(200, 200).centerInside().into(thumbnail);
         final TextView title = (TextView) convertView.findViewById(R.id.item_title);
         title.setText(photo.getTitle());
-        setStarCounter(convertView, displayModeIndex ,photo);
+        setStarCounter(convertView ,photo);
         FloatingActionButton fab = (FloatingActionButton) convertView.findViewById(R.id.fab_delete);
         fab.setFocusable(false);
         fab.setFocusableInTouchMode(false);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(displayModeIndex==1){
-                    PhotoPersistenceManager photoPersistenceManager = new PhotoPersistenceManager(context);
-                    photoPersistenceManager.delete(photo);
+                if(onRowDeletedListener!=null) {
+                    onRowDeletedListener.onRowDeleted(photo);
                 }
                 photoList.remove(photo);
                 notifyDataSetChanged();
@@ -90,13 +92,15 @@ public class ListAdapter extends BaseAdapter{
         return convertView;
     }
 
-    private void setStarCounter(View convertView, int displayModeIndex ,Photo photo){
+    private void setStarCounter(View convertView ,Photo photo){
+        final SharedPreferences sp = ((Activity) context).getPreferences(Context.MODE_PRIVATE);
+        final String displayMode = sp.getString(MainActivity.DISPLAY_MODE, MainActivity.SEARCH_MODE);
         ImageButton star = (ImageButton) convertView.findViewById(R.id.item_star);
         star.setColorFilter(ContextCompat.getColor(context, R.color.colorAccent), PorterDuff.Mode.MULTIPLY);
         star.setFocusable(false);
         star.setFocusableInTouchMode(false);
         TextView clickCounter = (TextView) convertView.findViewById(R.id.item_click_counter);
-        if(displayModeIndex==1){
+        if(displayMode.equals(MainActivity.HISTORY_MODE)){
             clickCounter.setText(String.valueOf(photo.getClickCounter()));
         }else{
             clickCounter.setText("");

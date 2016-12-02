@@ -11,7 +11,6 @@ import android.os.IBinder;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -31,17 +30,18 @@ import org.honorato.multistatetogglebutton.ToggleButton;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener, FlickrResponseListener, AdapterView.OnItemSelectedListener, ToggleButton.OnValueChangedListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener, FlickrResponseListener, AdapterView.OnItemSelectedListener, ToggleButton.OnValueChangedListener, OnRowDeletedListener {
+    //storage keys
     public static final String FULL_VIEW_PHOTO = "photo";
-    public final static String DISPLAY_MODE_INDEX = "displayModeIndex";
+    public final static String DISPLAY_MODE = "displayMode";
     public final static String IMAGE_PER_PAGE_INDEX = "imagePerPageIndex";
+
+    public final static String SEARCH_MODE = "search";
+    public final static String HISTORY_MODE = "history";
 
     //persistence
     private SharedPreferences sharedPreferences;
     private PhotoPersistenceManager photoPersistenceManager;
-
-    private int displayModeIndex = 0;
-    private int imagePerPageIndex = 0;
 
     //service
     private FlickrService flickrService;
@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     DrawerLayout drawerLayout;
     MultiStateToggleButton drawerToggle;
     Spinner drawerImagesNbSpinner;
+    //TODO set a public static List of HashMaps {"displayMode": displayMode, "icon": drawable}, and generate buttons in MultiStateToggleButtons with for loop + add method to get IndexByMode
 
     //search view
     LinearLayout searchLayout;
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
+
+        adapter.setOnRowDeletedListener(MainActivity.this);
 
         sharedPreferences = getPreferences(MODE_PRIVATE);
         photoPersistenceManager = new PhotoPersistenceManager(this);
@@ -108,11 +111,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
-        setNavBarTitle(sharedPreferences.getInt(DISPLAY_MODE_INDEX, 0));
+        setNavBarTitle(getDisplayMode());
     }
 
     private void initDrawerMultiStateButtons(){
-        displayModeIndex = sharedPreferences.getInt(DISPLAY_MODE_INDEX, 0); //load value saved in preferences
         ImageButton button1 = (ImageButton) getLayoutInflater().inflate(R.layout.drawer_search_button, drawerToggle, false);
         button1.setImageResource(android.R.drawable.ic_menu_search);
         ImageButton button2 = (ImageButton) getLayoutInflater().inflate(R.layout.drawer_search_button, drawerToggle, false);
@@ -120,23 +122,22 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         View[] buttons = new View[] {button1, button2};
         boolean[] selectionState = new boolean[buttons.length];
-        selectionState[displayModeIndex] = true;
+        selectionState[getDisplayModeButtonIndexByDisplayMode(getDisplayMode())] = true;
         drawerToggle.setButtons(buttons, selectionState);
         drawerToggle.setOnValueChangedListener(this);
     }
 
     private void initSpinner(){
-        imagePerPageIndex = sharedPreferences.getInt(IMAGE_PER_PAGE_INDEX, 0); //load value saved in preferences
         drawerImagesNbSpinner.setOnItemSelectedListener(this);
         ArrayAdapter<CharSequence> adapterSpinner = ArrayAdapter.createFromResource(this,R.array.images_number_per_page, android.R.layout.simple_spinner_item);
         adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         drawerImagesNbSpinner.setAdapter(adapterSpinner);
-        drawerImagesNbSpinner.setSelection(imagePerPageIndex);//if saved spinner's value as string instead of index of value => spinner.setSelection(adapter.getPosition(value))
+        drawerImagesNbSpinner.setSelection(sharedPreferences.getInt(IMAGE_PER_PAGE_INDEX, 0));//if saved spinner's value as string instead of index of value => spinner.setSelection(adapter.getPosition(value))
     }
 
     private void initSearchBar(){
         searchButton.setOnClickListener(this);
-        setSearchLayoutVisibility(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
+        setSearchLayoutVisibility(getDisplayMode());
     }
 
     private void initList(){
@@ -144,26 +145,59 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         listView.setOnItemClickListener(this);
     }
 
-    private void setSearchLayoutVisibility(int value){
-        switch (value){
+    //TODO replace with display mode string constant
+    public String getDisplayMode(){
+        return sharedPreferences.getString(DISPLAY_MODE, SEARCH_MODE);
+    }
+
+    //TODO use it in onValueChanged to save the display mode
+    private String getDisplayModeByButtonIndex(int buttonIndex){
+        String displayMode = SEARCH_MODE;
+        switch (buttonIndex){
             case 0:
-                searchLayout.setVisibility(View.VISIBLE);
+                displayMode = SEARCH_MODE;
                 break;
             case 1:
+                displayMode = HISTORY_MODE;
+                break;
+        }
+        return displayMode;
+    }
+
+    private int getDisplayModeButtonIndexByDisplayMode(String displayMode){
+        int buttonIndex = 0;
+        switch (displayMode){
+            case SEARCH_MODE:
+                buttonIndex = 0;
+                break;
+            case HISTORY_MODE:
+                buttonIndex = 1;
+                break;
+        }
+        return buttonIndex;
+    }
+
+    private void setSearchLayoutVisibility(String displayMode){
+        switch (displayMode){
+            case SEARCH_MODE:
+                searchLayout.setVisibility(View.VISIBLE);
+                break;
+            case HISTORY_MODE:
                 searchLayout.setVisibility(View.GONE);
                 break;
             default:
+                searchLayout.setVisibility(View.VISIBLE);
                 break;
         }
     }
 
-    private void setNavBarTitle(int value){
+    private void setNavBarTitle(String displayMode){
         String navBarTitle = getResources().getString(R.string.app_name);
-        switch (value){
-            case 0:
+        switch (displayMode){
+            case SEARCH_MODE:
                 navBarTitle += " - Search";
                 break;
-            case 1:
+            case HISTORY_MODE:
                 navBarTitle += " - History";
                 break;
             default:
@@ -172,12 +206,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getSupportActionBar().setTitle(navBarTitle);
     }
 
-    private void setList(int value){
-        switch (value){
-            case 0:
+    private void setList(String displayMode){
+        switch (displayMode){
+            case SEARCH_MODE:
                 loadSearchList();
                 break;
-            case 1:
+            case HISTORY_MODE:
                 loadHistoryList();
                 break;
             default:
@@ -226,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             bound = true;
 
             //List will be reloaded if activity is created, re-reacreated(after device rotation), or restarted (when the user press Back button in DetailActivity)
-            setList(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
+            setList(getDisplayMode());
         }
 
         @Override
@@ -286,26 +320,35 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //drawer togglebutton listener
     @Override
     public void onValueChanged(int value) {
-        setNavBarTitle(value);
-        setSearchLayoutVisibility(value);
-        setList(value);
         //save preferences
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(DISPLAY_MODE_INDEX, value);
+        editor.putString(DISPLAY_MODE, getDisplayModeByButtonIndex(value));
         editor.commit();
+        //update display
+        setNavBarTitle(getDisplayMode());
+        setSearchLayoutVisibility(getDisplayMode());
+        setList(getDisplayMode());
     }
 
     //drawer dropdown listeners
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        setList(sharedPreferences.getInt(DISPLAY_MODE_INDEX,0));
         //save preferences
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(IMAGE_PER_PAGE_INDEX, position);
         editor.commit();
+        //update display
+        setList(getDisplayMode());
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
+    }
+
+    @Override
+    public void onRowDeleted(Photo photo) {
+        if(getDisplayMode().equals(HISTORY_MODE)) {
+            photoPersistenceManager.delete(photo);
+        }
     }
 }
